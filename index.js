@@ -23,11 +23,12 @@ class UserPair {
   setupSocketEvents() {
     console.log("=====ececute");
     const [user1Socket, user2Socket] = this.users;
-
     // Notify both users that a call is starting
     user1Socket.emit("start-call", { userId: user2Socket.id });
     user2Socket.emit("start-call", { userId: user1Socket.id });
 
+    user1Socket.emit("start-call", { userId: user2Socket.id });
+    user2Socket.emit("start-call", { userId: user1Socket.id });
     user1Socket.on("offer", (data) => {
       user2Socket.emit("offer", data);
     });
@@ -35,7 +36,7 @@ class UserPair {
     user2Socket.on("answer", (data) => {
       user1Socket.emit("answer", data);
     });
-
+    
     user1Socket.on("ice-candidate", (candidate) => {
       user2Socket.emit("ice-candidate", candidate);
     });
@@ -45,50 +46,56 @@ class UserPair {
     });
 
     // Cleanup when a user disconnects
-    user1Socket.on("disconnect", () => this.cleanup(user1Socket));
-    user2Socket.on("disconnect", () => this.cleanup(user2Socket));
-    map.set(user1Socket,false)
-    map.set(user2Socket,false)
+    user1Socket.on("disconnect", ()=>{ 
+      //map.delete(user1Socket) 
+      this.cleanup(user1Socket)
+    });
+    user2Socket.on("disconnect", ()=>{
+     // map.delete(user2Socket) 
+      this.cleanup(user2Socket)
+    });
+    //map.set(user1Socket,false)
+    //map.set(user2Socket,false)
 
   }
 
   cleanup(socket) {
     const otherUser = this.users.find((user) => user !== socket);
-    console.log("=====other");
     if (otherUser) {
-      console.log("=====oth1er");
       otherUser.emit("call-ended");
     }
-    // Remove the user from the queue if still present
     const index = usersQueue.indexOf(socket);
     if (index !== -1) usersQueue.splice(index, 1);
   }
 }
 eventEmitter.on("execute", async () => {
   console.log("=======limit reach==", usersQueue.length);
-  const user1 = usersQueue.shift(); // Get the first user
-  const user2 = usersQueue.shift(); // Get the second user
-  await new Promise((res) => setTimeout(res, 1500));
+  const user1 = usersQueue.shift();
+  const user2 = usersQueue.shift();
   const userPair = new UserPair(user1, user2);
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
-  usersQueue.push(socket); 
-  map.set(socket,true)
-  if (usersQueue.length >= 2) {
-    eventEmitter.emit("execute", "");
-  }
+ 
+  //map.set(socket,true)
+  socket.on("join-channel",()=>{
+    usersQueue.push(socket); 
+    if (usersQueue.length >= 2) {
+      eventEmitter.emit("execute", "");
+    }
+  })
 
   socket.on("disconnect", () => {
     console.log('User disconnected:', socket.id);
-    if(map.get(socket)){
-      const index = usersQueue.indexOf(socket);
+   // if(map.get(socket)){
+     //map.delete(socket)
+    const index = usersQueue.indexOf(socket);
     if (index !== -1){
       console.log('====ermoved===')
       usersQueue.splice(index, 1);
     }
-    }
+  //  }
     
   });
 });

@@ -57,6 +57,10 @@
     <div class="video-container">
         <video id="localVideo" autoplay playsinline muted></video>
         <video id="remoteVideo" autoplay playsinline></video>
+
+    </div>
+    <div>
+      <button onclick="startCall()">Start</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -65,22 +69,13 @@
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         let peerConnection;
-        //STUN server configuration
             const configuration = {
                 iceServers: [
                     {
-                        urls: 'stun:stun.l.google.com:19302' // Google STUN server
+                        urls: 'stun:stun.l.google.com:19302'
                     },
-                    // Optional: Add TURN server here
-                    // {
-                    //     urls: 'turn:YOUR_TURN_SERVER_URL',
-                    //     username: 'YOUR_USERNAME',
-                    //     credential: 'YOUR_CREDENTIAL'
-                    // }
-                ]
+                  ]
             };
-
-        // Start call automatically when the page loads
         const startCall = async () => {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true,audio:true });
             localVideo.srcObject = stream;
@@ -124,12 +119,10 @@
             socket.on('call-ended',()=>{
               console.log("===come")
               peerConnection.close();
-              location.reload();
+              startCall()
             })
+            socket.emit("join-channel","")
         };
-
-        // Call the function when the page loads
-        window.onload = startCall;
     </script>
 </body>
 </html>
