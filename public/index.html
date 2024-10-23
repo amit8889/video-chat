@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebRTC Video Chat</title>
+    <style>
+        video {
+            width: 45%;
+            margin: 20px;
+            border: 2px solid black;
+        }
+    </style>
 </head>
 <body>
     <h1>WebRTC Video Chat</h1>
@@ -17,13 +24,26 @@
         const remoteVideo = document.getElementById('remoteVideo');
         let peerConnection;
 
-        // Start call automatically when the page loads
         const startCall = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true,audio:true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             localVideo.srcObject = stream;
 
-            peerConnection = new RTCPeerConnection();
+            // STUN server configuration
+            const configuration = {
+                iceServers: [
+                    {
+                        urls: 'stun:stun.l.google.com:19302' // Google STUN server
+                    },
+                    // Optional: Add TURN server here
+                    // {
+                    //     urls: 'turn:YOUR_TURN_SERVER_URL',
+                    //     username: 'YOUR_USERNAME',
+                    //     credential: 'YOUR_CREDENTIAL'
+                    // }
+                ]
+            };
 
+            peerConnection = new RTCPeerConnection(configuration);
             stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
 
             peerConnection.onicecandidate = event => {
@@ -35,12 +55,6 @@
             peerConnection.ontrack = event => {
                 remoteVideo.srcObject = event.streams[0];
             };
-
-            socket.on('start-call', async ({ userId }) => {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('offer', offer);
-            });
 
             socket.on('offer', async (offer) => {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -58,14 +72,9 @@
                     await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
                 }
             });
-            socket.on('call-ended',()=>{
-              console.log("===come")
-              peerConnection.close();
-              location.reload();
-            })
         };
 
-        // Call the function when the page loads
+        // Start call automatically when the page loads
         window.onload = startCall;
     </script>
 </body>
