@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Chat</title>
+    <title> Video Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,6 +24,7 @@
             display: flex;
             justify-content: center;
             margin: 20px 0;
+            flex-direction: row; /* Default horizontal layout */
         }
         video {
             width: 45%;
@@ -41,6 +42,17 @@
             margin-top: 10px;
             font-size: 16px;
             color: #555;
+        }
+
+        /* Media query for mobile devices */
+        @media (max-width: 600px) {
+            .video-container {
+                flex-direction: column; /* Change to vertical layout */
+            }
+            video {
+                width: 80%; /* Adjust video width for mobile */
+                margin: 10px 0; /* Adjust margin for vertical layout */
+            }
         }
     </style>
 </head>
