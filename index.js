@@ -68,13 +68,13 @@ eventEmitter.on("execute", async () => {
   console.log("=======limit reach==", usersQueue.length);
   const user1 = usersQueue.shift(); // Get the first user
   const user2 = usersQueue.shift(); // Get the second user
-  await new Promise((res) => setTimeout(res, 1000));
+  await new Promise((res) => setTimeout(res, 1500));
   const userPair = new UserPair(user1, user2);
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
-  usersQueue.push(socket);
+  usersQueue.push(socket); 
   map.set(socket,true)
   if (usersQueue.length >= 2) {
     eventEmitter.emit("execute", "");
