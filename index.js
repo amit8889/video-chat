@@ -68,15 +68,14 @@ eventEmitter.on("execute", async () => {
   console.log("=======limit reach==", usersQueue.length);
   const user1 = usersQueue.shift(); // Get the first user
   const user2 = usersQueue.shift(); // Get the second user
-  await new Promise((res) => setTimeout(res, 3000));
+  await new Promise((res) => setTimeout(res, 1000));
   const userPair = new UserPair(user1, user2);
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
-  usersQueue.push(socket); // Add user to the queue
+  usersQueue.push(socket);
   map.set(socket,true)
-  // Check if there is another user to pair with
   if (usersQueue.length >= 2) {
     eventEmitter.emit("execute", "");
   }
@@ -94,7 +93,7 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use(express.static("public")); // Serve static files from the "public" directory
+app.use(express.static("public")); 
 const PORT  = process.env.PORT || 3000
 server.listen(PORT, () => {
   console.log("Server running on port 3000");

@@ -3,12 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Video Chat</title>
+    <title>Video Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef; /* Light background color */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .video-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        video {
+            width: 45%;
+            margin: 0 10px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+        .quote {
+            font-style: italic;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
     <h1>WebRTC Video Chat</h1>
-    <video id="localVideo" autoplay playsinline muted></video>
-    <video id="remoteVideo" autoplay playsinline></video>
+    <div class="video-container">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+    <div class="quote">"The art of communication is the language of leadership." - James Humes</div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -16,24 +58,25 @@
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         let peerConnection;
-        //STUN server configuration
-            const configuration = {
-                iceServers: [
-                    {
-                        urls: 'stun:stun.l.google.com:19302' // Google STUN server
-                    },
-                    // Optional: Add TURN server here
-                    // {
-                    //     urls: 'turn:YOUR_TURN_SERVER_URL',
-                    //     username: 'YOUR_USERNAME',
-                    //     credential: 'YOUR_CREDENTIAL'
-                    // }
-                ]
-            };
+
+        // STUN server configuration
+        const configuration = {
+            iceServers: [
+                {
+                    urls: 'stun:stun.l.google.com:19302' // Google STUN server
+                },
+                // Optional: Add TURN server here
+                // {
+                //     urls: 'turn:YOUR_TURN_SERVER_URL',
+                //     username: 'YOUR_USERNAME',
+                //     credential: 'YOUR_CREDENTIAL'
+                // }
+            ]
+        };
 
         // Start call automatically when the page loads
         const startCall = async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true,audio:true });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             localVideo.srcObject = stream;
 
             peerConnection = new RTCPeerConnection(configuration);
@@ -49,12 +92,6 @@
             peerConnection.ontrack = event => {
                 remoteVideo.srcObject = event.streams[0];
             };
-
-            socket.on('start-call', async ({ userId }) => {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('offer', offer);
-            });
 
             socket.on('offer', async (offer) => {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -72,15 +109,18 @@
                     await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
                 }
             });
-            socket.on('call-ended',()=>{
-              console.log("===come")
-              peerConnection.close();
-              location.reload();
-            })
+
+            socket.on('call-ended', () => {
+                peerConnection.close();
+                location.reload();
+            });
         };
 
         // Call the function when the page loads
         window.onload = startCall;
     </script>
+    <footer>
+        <p>Video Chat Application - WebRTC Example</p>
+    </footer>
 </body>
 </html>
